@@ -1,4 +1,4 @@
-const CACHE_NAME = 'notepad-cache-v1'
+const CACHE_NAME = 'notepad-cache-v2'
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -28,24 +28,41 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse
-      }
-      return fetch(event.request).then((networkResponse) => {
+  const { request } = event
+  const isHTML = request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')
+
+  if (isHTML) {
+    event.respondWith(
+      fetch(request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone()
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone)
+            cache.put(request, responseClone)
           })
         }
         return networkResponse
       }).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html')
-        }
+        return caches.match(request).then((cachedResponse) => {
+          return cachedResponse || caches.match('/index.html')
+        })
       })
-    })
-  )
+    )
+  } else {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse
+        }
+        return fetch(request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone()
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone)
+            })
+          }
+          return networkResponse
+        })
+      })
+    )
+  }
 })

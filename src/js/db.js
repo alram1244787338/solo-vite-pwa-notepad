@@ -73,23 +73,33 @@ function getAllNotes() {
   })
 }
 
-function updateNote(note) {
+function updateNote(id, changes) {
   return new Promise((resolve, reject) => {
     openDB().then((db) => {
       const transaction = db.transaction(STORE_NAME, 'readwrite')
       const store = transaction.objectStore(STORE_NAME)
-      const noteWithTime = {
-        ...note,
-        updatedAt: Date.now()
-      }
-      const request = store.put(noteWithTime)
+      const getRequest = store.get(id)
 
-      request.onsuccess = () => {
-        resolve(request.result)
+      getRequest.onsuccess = () => {
+        const existing = getRequest.result
+        if (!existing) {
+          reject(new Error('Note not found'))
+          return
+        }
+        const updated = { ...existing, ...changes, updatedAt: Date.now() }
+        const putRequest = store.put(updated)
+
+        putRequest.onsuccess = () => {
+          resolve(putRequest.result)
+        }
+
+        putRequest.onerror = () => {
+          reject(putRequest.error)
+        }
       }
 
-      request.onerror = () => {
-        reject(request.error)
+      getRequest.onerror = () => {
+        reject(getRequest.error)
       }
 
       transaction.oncomplete = () => {
