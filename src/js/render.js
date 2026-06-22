@@ -18,10 +18,12 @@ function getNoteTitle(content) {
   return firstLine.substring(0, 50) || '无标题笔记'
 }
 
-function escapeHtml(text) {
+export function escapeHtml(text) {
   const div = document.createElement('div')
   div.textContent = text
   return div.innerHTML
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 export async function loadNotes() {
@@ -33,7 +35,7 @@ export async function loadNotes() {
   }
 }
 
-function renderNotes(notes) {
+export function renderNotes(notes) {
   const container = document.getElementById('notes-container')
 
   if (notes.length === 0) {

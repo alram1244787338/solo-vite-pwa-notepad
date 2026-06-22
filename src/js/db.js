@@ -31,7 +31,7 @@ function addNote(note) {
       const noteWithTime = {
         ...note,
         createdAt: note.createdAt || Date.now(),
-        updatedAt: Date.now()
+        updatedAt: note.updatedAt || Date.now()
       }
       const request = store.add(noteWithTime)
 

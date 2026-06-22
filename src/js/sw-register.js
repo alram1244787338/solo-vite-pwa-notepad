@@ -30,7 +30,7 @@ export function registerServiceWorker() {
   })
 }
 
-function showOfflineBanner() {
+export function showOfflineBanner() {
   const banner = document.createElement('div')
   banner.className = 'offline-banner'
   banner.textContent = '已支持离线使用'

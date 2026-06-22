@@ -5,6 +5,10 @@ const APP_SHELL = [
   '/manifest.json'
 ]
 
+function isHTMLRequest(request) {
+  return request.mode === 'navigate' || !!(request.headers.get('accept')?.includes('text/html'))
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -29,9 +33,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event
-  const isHTML = request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')
 
-  if (isHTML) {
+  if (isHTMLRequest(request)) {
     event.respondWith(
       fetch(request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
